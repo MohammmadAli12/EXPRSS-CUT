@@ -1,26 +1,409 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ───────────────────────── Tokens ───────────────────────── */
+
+@theme {
+  --color-ivory: #f7f3ee;
+  --color-hero: #fbf8f5; /* sampled from the hero photograph's cream field */
+  --color-cream: #efe8de;
+  --color-paper: #ffffff;
+  --color-ink: #121110;
+  /* Solid secondary text — never translucent ink, so it can't grey out over images */
+  --color-ink-soft: #2e2b28; /* body, lists, descriptions — 12.8:1 on ivory */
+  --color-ink-muted: #4a4540; /* labels, metadata, struck prices — 8.6:1 on ivory */
+  --color-ivory-soft: #ece6dd; /* body on charcoal/night */
+  --color-ivory-muted: #c9c0b4; /* labels on charcoal/night */
+  --color-charcoal: #1b1917;
+  --color-night: #0f0e0d;
+  --color-line: #e5dcd0;
+  --color-champagne: #a9845a;
+  --color-champagne-soft: #e8dccb;
+  --color-price: #c8102e;
+  --color-call: #1b7a4a; /* offer-card Call buttons only — 5.4:1 with white */
+  --color-call-deep: #145c38;
+
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --shadow-card: 0 1px 2px rgb(18 17 16 / 0.05), 0 24px 44px -28px rgb(18 17 16 / 0.34);
+  --shadow-float: 0 14px 30px -14px rgb(18 17 16 / 0.4);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-bodoni), "Didot", "Bodoni 72", Georgia, serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-script: var(--font-signature), "Snell Roundhand", cursive;
 }
 
-@media (prefers-color-scheme: dark) {
+:root {
+  /* Bodoni Moda's optical-size axis: left on auto, large headings get the hairline
+     display cut and read as faint. A text-leaning opsz keeps the same face with
+     sturdier thin strokes. 11 was chosen by rendering auto/36/24/18/11 at
+     weights 500/600 beside the reference heading; 11 @ 600 matched it best. */
+  --display-opsz: 11;
+  --gutter: clamp(1.25rem, 4vw, 2.75rem);
+  --nav-h: 72px;
+}
+@media (min-width: 1024px) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --nav-h: 84px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ───────────────────────── Base ───────────────────────── */
+
+@layer base {
+  html {
+    background-color: var(--color-ivory);
+    color: var(--color-ink);
+    scrollbar-color: #cdbfab var(--color-ivory);
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-ivory);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-ivory);
+  }
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+  }
+  .on-dark :where(a, button):focus-visible {
+    outline-color: var(--color-champagne-soft);
+  }
+  input,
+  select,
+  textarea {
+    caret-color: var(--color-champagne);
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  .font-display {
+    font-optical-sizing: none;
+    font-variation-settings: "opsz" var(--display-opsz);
+  }
+  p {
+    text-wrap: pretty;
+  }
+  section[id] {
+    scroll-margin-top: var(--nav-h);
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* ───────────────────────── Utilities ───────────────────────── */
+
+@utility shell {
+  width: 100%;
+  max-width: 82rem;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* Aligns a full-bleed element's content edge with .shell */
+@utility pl-shell {
+  padding-left: max(var(--gutter), calc((100% - 82rem) / 2 + var(--gutter)));
+}
+@utility px-shell {
+  padding-inline: max(var(--gutter), calc((100% - 82rem) / 2 + var(--gutter)));
+}
+
+@utility eyebrow {
+  font-size: 0.75rem;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ───────────────────────── Hero ───────────────────────── */
+
+.hero {
+  --hero-h: clamp(700px, 100svh, 960px);
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    height: var(--hero-h);
+  }
+  /* The photograph is 3:2 with an empty cream left third made for type.
+     - It starts below the navigation, so the bar never touches the barber's head.
+     - It is zoomed slightly; the extra height only crops the cape at the bottom.
+     - It is anchored right so the STYLE list and thumbnails stay in frame, and
+       only its empty cream share may slide under the text column. */
+  .hero-art {
+    --art-top: calc(var(--nav-h) + 16px);
+    --art-h: calc(var(--hero-h) - var(--art-top));
+    --hero-zoom: 1.2;
+    --art-free: 0.42; /* share of the frame's width that is empty cream */
+    --text-end: calc(max(0px, (100% - 82rem) / 2) + var(--gutter) + 548px);
+    --art-w: max(
+      calc(var(--art-h) * 1.5),
+      min(
+        calc(var(--art-h) * 1.5 * var(--hero-zoom)),
+        calc((100% - var(--text-end)) / (0.985 - var(--art-free)))
+      )
+    );
+    position: absolute;
+    top: var(--art-top);
+    bottom: 0;
+    width: var(--art-w);
+    left: max(
+      calc(100% - var(--art-w) * 0.985),
+      calc(var(--text-end) - var(--art-w) * var(--art-free))
+    );
+    -webkit-mask-image:
+      linear-gradient(90deg, transparent 0, #000 9%),
+      linear-gradient(180deg, transparent 0, #000 28px);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(90deg, transparent 0, #000 9%),
+      linear-gradient(180deg, transparent 0, #000 28px);
+    mask-composite: intersect;
+  }
+}
+
+.hero-rise {
+  animation: rise-in 1.1s var(--ease-editorial) both;
+  animation-delay: calc(var(--d, 0) * 1ms);
+}
+.hero-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.hero-line > span {
+  display: inline-block;
+  animation: line-up 1.25s var(--ease-editorial) both;
+  animation-delay: calc(var(--d, 0) * 1ms);
+}
+.hero-settle {
+  animation: settle 2.2s var(--ease-editorial) both;
+}
+.bob {
+  animation: bob 2.4s ease-in-out infinite;
+}
+
+/* ───────────────────────── Offers ───────────────────────── */
+
+.offers-viewport {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 84px);
+  mask-image: linear-gradient(90deg, transparent 0, #000 84px);
+}
+/* Zoomed-out offer photo: soft side edges over its own blurred extension */
+.offer-zoom {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+}
+
+.offers-viewport[data-layout="stacked"] {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--gutter));
+  mask-image: linear-gradient(90deg, transparent 0, #000 var(--gutter));
+}
+
+/* Short screens: tighten the card body so the tallest package (seven inclusions)
+   still fits the pinned frame with a usable photograph. */
+@media (max-height: 800px) {
+  .offers-fit .offer-body {
+    padding-top: 1.125rem;
+    padding-bottom: 1.125rem;
+  }
+  .offers-fit .offer-list {
+    margin-top: 1rem;
+    padding-top: 0.875rem;
+  }
+  .offers-fit .offer-list > :not(:last-child) {
+    margin-block-end: 0.3rem;
+  }
+  .offers-fit .offer-cta {
+    margin-top: 1.125rem;
+  }
+}
+
+/* ───────────────────────── Dialogs ───────────────────────── */
+
+html.modal-open {
+  overflow: hidden;
+}
+
+.booking-dialog {
+  width: min(580px, calc(100% - 2rem));
+  max-width: none;
+  max-height: min(92svh, 880px);
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: var(--color-ivory);
+  color: var(--color-ink);
+  box-shadow: 0 40px 90px -30px rgb(0 0 0 / 0.5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.booking-dialog::backdrop {
+  background: rgb(15 14 13 / 0.58);
+}
+.booking-dialog[open] {
+  animation: dialog-in 0.55s var(--ease-editorial) both;
+}
+.booking-dialog[open]::backdrop {
+  animation: fade-in 0.4s ease both;
+}
+@media (max-width: 639px) {
+  .booking-dialog {
+    width: 100%;
+    margin: auto 0 0;
+    border-radius: 22px 22px 0 0;
+    max-height: 94svh;
+  }
+  .booking-dialog[open] {
+    animation-name: sheet-in;
+  }
+}
+
+.menu-dialog {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-ivory);
+  color: var(--color-ink);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.menu-dialog::backdrop {
+  background: transparent;
+}
+.menu-dialog[open] {
+  animation: fade-in 0.4s var(--ease-editorial) both;
+}
+.menu-dialog[open] .menu-item {
+  animation: rise-in 0.8s var(--ease-editorial) both;
+  animation-delay: calc(90ms + var(--i, 0) * 38ms);
+}
+
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  transform: translateY(-220%);
+  background: var(--color-ink);
+  color: var(--color-ivory);
+  padding: 0.75rem 1.15rem;
+  border-radius: 999px;
+  font-size: 13px;
+  transition: transform 0.3s var(--ease-editorial);
+}
+.skip-link:focus {
+  transform: none;
+}
+
+/* ───────────────────────── Keyframes ───────────────────────── */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes line-up {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes settle {
+  from {
+    transform: scale(1.045);
+    opacity: 0.001;
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(-2px);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
