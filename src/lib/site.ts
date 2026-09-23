@@ -4,6 +4,8 @@
  */
 
 export const SITE = {
+  /** Public origin, once the domain is live — set NEXT_PUBLIC_SITE_URL to enable canonical/OG URLs */
+  url: process.env.NEXT_PUBLIC_SITE_URL,
   name: "Express Cuts Men's Salon",
   shortName: "Express Cuts",
   established: 2020,
@@ -18,6 +20,10 @@ export const SITE = {
   ],
   landmark: "2 KM from Hoodi Circle",
   neighbourhood: "Ayyappa Nagar, KR Puram",
+  /* Keyless embed of the same place the short maps link opens */
+  mapsEmbedUrl: `https://www.google.com/maps?q=${encodeURIComponent(
+    "Express Cuts Men's Salon, 25/2, Ayyappa Nagar Main Rd, Priyadarshini Layout, Krishnarajapuram, Bengaluru, Karnataka 560037",
+  )}&output=embed`,
 } as const;
 
 export const TEL = "tel:+918970000135";
@@ -29,23 +35,35 @@ export function waLink(text?: string) {
 }
 
 export type NavItem = { label: string; href: string };
+/** A top-level entry that opens a list instead of navigating */
+export type NavGroup = { label: string; children: NavItem[] };
 
-/** Final site architecture. Only "/" exists today; the rest are future pages. */
-export const NAV: NavItem[] = [
-  { label: "Home", href: "/" },
+/**
+ * The service pages that exist. Add a page here when it is built — the navbar,
+ * the menu sheet and the footer all read this list, so nothing ever links to a
+ * route that isn't there.
+ */
+export const SERVICE_NAV: NavItem[] = [
   { label: "Hair", href: "/hair" },
   { label: "Beard", href: "/beard" },
   { label: "Facial", href: "/facial" },
   { label: "Hair Spa", href: "/hair-spa" },
-  { label: "Skin Care", href: "/skin-care" },
   { label: "Hair Color", href: "/hair-color" },
-  { label: "Keratin", href: "/keratin" },
-  { label: "Offers", href: "/offers" },
-  { label: "Our Story", href: "/our-story" },
-  { label: "Locations", href: "/locations" },
 ];
 
-export const CONTACT_NAV: NavItem = { label: "Contact", href: "/contact" };
+/** The top-level entries; every service sits under Services. */
+export const NAV: (NavItem | NavGroup)[] = [
+  { label: "Home", href: "/" },
+  { label: "Services", children: SERVICE_NAV },
+  { label: "Offers", href: "/offers" },
+  { label: "Gallery", href: "/gallery" },
+  { label: "Our Story", href: "/our-story" },
+];
+
+export const isGroup = (item: NavItem | NavGroup): item is NavGroup => "children" in item;
+
+/** True while the current route belongs to the Services group */
+export const inServices = (pathname: string) => SERVICE_NAV.some((s) => s.href === pathname);
 
 export type HoursRow = {
   label: string;
@@ -74,6 +92,9 @@ export const HOURS: readonly HoursRow[] = [
     display: "07:00 AM – 10:00 PM",
   },
 ];
+
+/** True only while the supplied hours cover every day of the week */
+export const OPEN_ALL_WEEK = new Set(HOURS.flatMap((h) => h.days)).size === 7;
 
 export function hoursFor(day: number): HoursRow {
   return HOURS.find((h) => h.days.includes(day)) ?? HOURS[0];

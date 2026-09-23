@@ -1,7 +1,7 @@
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 
-type Variant = "ink" | "ivory" | "outline" | "outline-light" | "call";
+type Variant = "ink" | "ivory" | "outline" | "outline-light" | "call" | "go";
 type Size = "sm" | "md" | "lg";
 
 const VARIANTS: Record<Variant, string> = {
@@ -9,8 +9,10 @@ const VARIANTS: Record<Variant, string> = {
   ivory: "bg-ivory text-ink hover:bg-white",
   outline: "border border-ink/20 text-ink hover:border-ink",
   "outline-light": "border border-ivory/30 text-ivory hover:border-ivory hover:bg-ivory/[0.06]",
-  /* Reserved for tel: actions on the offer cards */
+  /* Green: Call / WhatsApp actions only (offer cards, Find us) */
   call: "bg-call text-white hover:bg-call-deep",
+  /* Bright green with ink text: the Hair Spa page's single Call Now action */
+  go: "bg-go font-semibold text-ink hover:bg-go-deep hover:-translate-y-px",
 };
 
 const SIZES: Record<Size, string> = {

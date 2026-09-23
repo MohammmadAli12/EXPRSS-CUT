@@ -3,9 +3,9 @@ import Link from "next/link";
 import { Phone } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { BookTrigger } from "@/components/booking/BookTrigger";
 import { Arrow, Eyebrow, btn } from "@/components/ui/button";
-import { SITE, TEL } from "@/lib/site";
+import { SITE, TEL, waLink } from "@/lib/site";
+import { WaBtn2 } from "@/components/offer-card/actions";
 
 export const metadata: Metadata = { title: "Coming soon" };
 
@@ -30,7 +30,7 @@ export default function NotFound() {
             <Link href="/" className={btn("ink", "md")}>
               Back to home <Arrow />
             </Link>
-            <BookTrigger className={btn("outline", "md")}>Book Now</BookTrigger>
+            <WaBtn2 size="md" href={waLink("Hi, I'd like to book a slot at Express Cuts.")} />
             <a href={TEL} className={btn("outline", "md")}>
               <Phone aria-hidden className="size-4" strokeWidth={1.6} /> {SITE.phoneDisplay}
             </a>

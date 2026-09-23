@@ -113,4 +113,4 @@ export const REVIEWS: Review[] = [
  * Figures supplied by the salon owner from the Google listing.
  * They change over time — update value, count and asOf together.
  */
-export const GOOGLE_RATING = { value: 4.8, count: 953, asOf: "Sep 2026" } as const;
+export const GOOGLE_RATING = { value: 4.7, count: 990, asOf: "Sep 2026" } as const;

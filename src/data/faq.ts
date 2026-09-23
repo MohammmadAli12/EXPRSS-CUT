@@ -24,11 +24,11 @@ export const FAQS: Faq[] = [
   {
     q: "How can I book an appointment?",
     a: [
-      "Book through the website, call ",
-      { text: SITE.phoneDisplay, href: TEL },
-      ", or contact us on ",
+      "Message us on ",
       { text: "WhatsApp", href: SITE.whatsappUrl, external: true },
-      ".",
+      ", call ",
+      { text: SITE.phoneDisplay, href: TEL },
+      ", or simply walk in.",
     ],
   },
   {

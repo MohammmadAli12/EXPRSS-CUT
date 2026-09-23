@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CONTACT_NAV, NAV, SITE, TEL, waLink } from "@/lib/site";
+import { NAV, SITE, TEL, isGroup, waLink } from "@/lib/site";
 import { Wordmark } from "@/components/ui/Wordmark";
 import { HoursList } from "@/components/ui/HoursList";
 import { Arrow } from "@/components/ui/button";
@@ -13,16 +13,28 @@ export function Footer() {
           <Link href="/" aria-label="Express Cuts Men's Salon — home" className="self-start">
             <Wordmark tone="light" />
           </Link>
-          <nav aria-label="Footer">
-            <ul className="flex flex-wrap gap-x-6 gap-y-3 text-[14px] text-ivory-soft">
-              {[...NAV, CONTACT_NAV].map((item) => (
-                <li key={item.href}>
-                  <Link href={item.href} className="transition-colors hover:text-ivory">
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          {/* Four destinations; every service page sits under Services */}
+          <nav aria-label="Footer" className="flex flex-wrap items-start gap-x-12 gap-y-8 text-[14px]">
+            {NAV.map((item) =>
+              isGroup(item) ? (
+                <div key={item.label}>
+                  <h2 className="eyebrow text-ivory-muted">{item.label}</h2>
+                  <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-2.5 text-ivory-soft">
+                    {item.children.map((child) => (
+                      <li key={child.href}>
+                        <Link href={child.href} className="transition-colors hover:text-ivory">
+                          {child.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <Link key={item.href} href={item.href} className="text-ivory-soft transition-colors hover:text-ivory">
+                  {item.label}
+                </Link>
+              ),
+            )}
           </nav>
         </div>
 

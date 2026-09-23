@@ -1,9 +1,8 @@
 import Image from "next/image";
 import { Phone } from "lucide-react";
 import { SITE, TEL, waLink } from "@/lib/site";
-import { Arrow, btn } from "@/components/ui/button";
-import { BookTrigger } from "@/components/booking/BookTrigger";
 import { Reveal } from "@/components/motion/Reveal";
+import { WaBtn2 } from "@/components/offer-card/actions";
 
 export function FinalCTA() {
   return (
@@ -39,12 +38,7 @@ export function FinalCTA() {
               Open seven days a week in Ayyappa Nagar, KR Puram, 2 KM from Hoodi Circle.
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
-              <BookTrigger className={btn("ivory", "lg")}>
-                Book Your Appointment <Arrow />
-              </BookTrigger>
-              <a href={waLink()} target="_blank" rel="noopener noreferrer" className={btn("outline-light", "lg")}>
-                WhatsApp Us <Arrow />
-              </a>
+              <WaBtn2 size="lg" href={waLink("Hi, I'd like to book a slot at Express Cuts.")} />
             </div>
             <a
               href={TEL}

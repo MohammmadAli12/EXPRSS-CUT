@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Phone, X } from "lucide-react";
-import { NAV, SITE, TEL } from "@/lib/site";
+import { ChevronDown, X } from "lucide-react";
+import { NAV, SITE, inServices, isGroup, waLink } from "@/lib/site";
 import { cn } from "@/lib/cn";
 import { Wordmark } from "@/components/ui/Wordmark";
 import { HoursList } from "@/components/ui/HoursList";
-import { Arrow, Eyebrow, btn } from "@/components/ui/button";
-import { BookTrigger } from "@/components/booking/BookTrigger";
+import { Arrow, Eyebrow } from "@/components/ui/button";
+import { CallBtn2, WaBtn2 } from "@/components/offer-card/actions";
 
 type Props = { open: boolean; onClose: () => void; pathname: string };
 
@@ -55,22 +55,23 @@ export function MenuSheet({ open, onClose, pathname }: Props) {
 
         <div className="shell grid flex-1 gap-14 pb-12 pt-6 lg:grid-cols-12 lg:gap-10 lg:pt-12">
           <nav aria-label="Menu" className="lg:col-span-7">
-            <ul className="grid gap-x-12 sm:grid-cols-2">
-              {NAV.map((item, i) => {
-                const active = item.href === pathname;
-                return (
-                  <li
-                    key={item.href}
-                    className="menu-item border-b border-line"
-                    style={{ "--i": i } as React.CSSProperties}
-                  >
+            <ul className="grid gap-x-12">
+              {NAV.map((item, i) => (
+                <li
+                  key={isGroup(item) ? item.label : item.href}
+                  className="menu-item border-b border-line"
+                  style={{ "--i": i } as React.CSSProperties}
+                >
+                  {isGroup(item) ? (
+                    <ServicesGroup item={item} index={i} pathname={pathname} onClose={onClose} />
+                  ) : (
                     <Link
                       href={item.href}
                       onClick={onClose}
-                      aria-current={active ? "page" : undefined}
+                      aria-current={item.href === pathname ? "page" : undefined}
                       className={cn(
                         "flex items-baseline justify-between py-3.5 font-display text-[28px] leading-tight transition-colors sm:text-[32px]",
-                        active ? "italic text-champagne" : "text-ink hover:text-champagne",
+                        item.href === pathname ? "italic text-champagne" : "text-ink hover:text-champagne",
                       )}
                     >
                       {item.label}
@@ -78,9 +79,9 @@ export function MenuSheet({ open, onClose, pathname }: Props) {
                         {String(i + 1).padStart(2, "0")}
                       </span>
                     </Link>
-                  </li>
-                );
-              })}
+                  )}
+                </li>
+              ))}
             </ul>
           </nav>
 
@@ -89,12 +90,8 @@ export function MenuSheet({ open, onClose, pathname }: Props) {
             style={{ "--i": NAV.length } as React.CSSProperties}
           >
             <div className="flex flex-wrap gap-2">
-              <BookTrigger onBeforeOpen={onClose} className={btn("ink", "md")}>
-                Book Appointment <Arrow />
-              </BookTrigger>
-              <a href={TEL} className={btn("outline", "md")}>
-                <Phone aria-hidden className="size-4" strokeWidth={1.6} /> Call Now
-              </a>
+              <CallBtn2 />
+              <WaBtn2 href={waLink("Hi, I'd like to book a slot at Express Cuts.")} />
             </div>
             <div>
               <Eyebrow>Visit</Eyebrow>
@@ -122,5 +119,66 @@ export function MenuSheet({ open, onClose, pathname }: Props) {
         </div>
       </div>
     </dialog>
+  );
+}
+
+/** Services opens in place, so the sheet keeps its four-line rhythm */
+function ServicesGroup({
+  item,
+  index,
+  pathname,
+  onClose,
+}: {
+  item: { label: string; children: { label: string; href: string }[] };
+  index: number;
+  pathname: string;
+  onClose: () => void;
+}) {
+  const active = inServices(pathname);
+  const [open, setOpen] = useState(active);
+
+  return (
+    <>
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          "flex w-full items-baseline justify-between py-3.5 font-display text-[28px] leading-tight transition-colors sm:text-[32px]",
+          active ? "italic text-champagne" : "text-ink hover:text-champagne",
+        )}
+      >
+        <span className="inline-flex items-center gap-3">
+          {item.label}
+          <ChevronDown
+            aria-hidden
+            className={cn("size-5 transition-transform duration-300 ease-editorial", open && "rotate-180")}
+            strokeWidth={1.6}
+          />
+        </span>
+        <span className="tabular font-sans text-[12px] not-italic text-ink-muted">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+      </button>
+
+      <ul className={cn("overflow-hidden pl-1 transition-all duration-400 ease-editorial", open ? "max-h-72 pb-4" : "max-h-0")}>
+        {item.children.map((child) => (
+          <li key={child.href}>
+            <Link
+              href={child.href}
+              onClick={onClose}
+              tabIndex={open ? undefined : -1}
+              aria-current={child.href === pathname ? "page" : undefined}
+              className={cn(
+                "block py-1.5 text-[16px] transition-colors",
+                child.href === pathname ? "text-champagne" : "text-ink-soft hover:text-ink",
+              )}
+            >
+              {child.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }

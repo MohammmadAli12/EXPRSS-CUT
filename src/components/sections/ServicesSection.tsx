@@ -3,7 +3,7 @@ import { ServicesGrid } from "./ServicesGrid";
 
 export function ServicesSection() {
   return (
-    <section id="services" aria-labelledby="services-title" className="bg-ivory py-24 lg:pb-32 lg:pt-28">
+    <section id="services" aria-labelledby="services-title" className="bg-ivory pb-24 pt-10 lg:pb-32 lg:pt-12">
       <div className="shell">
         <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
           <div>

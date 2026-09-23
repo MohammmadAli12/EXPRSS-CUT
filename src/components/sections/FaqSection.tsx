@@ -3,34 +3,18 @@
 import { useId, useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import { FAQS, type Faq } from "@/data/faq";
-import { Eyebrow } from "@/components/ui/button";
+import { cn } from "@/lib/cn";
 
-export function FaqSection() {
+/** Hairline-divided accordion of the owner-supplied FAQ (one answer open at a time). */
+export function FaqList({ className, items = FAQS }: { className?: string; items?: Faq[] }) {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section id="faq" aria-labelledby="faq-title" className="bg-ivory pb-20 lg:pb-28">
-      <div className="shell grid gap-10 lg:grid-cols-12 lg:gap-10">
-        <div className="lg:col-span-4">
-          <Eyebrow>FAQ</Eyebrow>
-          <h2
-            id="faq-title"
-            className="mt-5 font-display text-[clamp(2.3rem,4vw,3.3rem)] font-semibold leading-[1.04] tracking-[-0.015em]"
-          >
-            Frequently Asked Questions
-          </h2>
-          <p className="mt-5 max-w-[34ch] text-[16px] leading-relaxed text-ink-soft">
-            Everything you need to know before your visit.
-          </p>
-        </div>
-
-        <ul className="border-t border-line lg:col-span-8">
-          {FAQS.map((item, i) => (
-            <FaqItem key={item.q} item={item} open={open === i} onToggle={() => setOpen(open === i ? null : i)} />
-          ))}
-        </ul>
-      </div>
-    </section>
+    <ul className={cn("border-t border-line", className)}>
+      {items.map((item, i) => (
+        <FaqItem key={item.q} item={item} open={open === i} onToggle={() => setOpen(open === i ? null : i)} />
+      ))}
+    </ul>
   );
 }
 
@@ -47,14 +31,14 @@ function FaqItem({ item, open, onToggle }: { item: Faq; open: boolean; onToggle:
           aria-expanded={open}
           aria-controls={`${id}-a`}
           onClick={onToggle}
-          className="group flex w-full items-center justify-between gap-6 py-5 text-left text-[17px] font-medium leading-snug text-ink sm:py-6 sm:text-[18px]"
+          className="group flex w-full items-center justify-between gap-6 py-4 text-left text-[16px] font-medium leading-snug text-ink sm:text-[16.5px]"
         >
           <span>{item.q}</span>
           <span
             aria-hidden
-            className="grid size-9 shrink-0 place-items-center rounded-full border border-ink/20 transition-colors duration-300 group-hover:border-ink"
+            className="grid size-8 shrink-0 place-items-center rounded-full border border-ink/20 transition-colors duration-300 group-hover:border-ink"
           >
-            <Icon className="size-4" strokeWidth={1.6} />
+            <Icon className="size-3.5" strokeWidth={1.6} />
           </span>
         </button>
       </h3>
@@ -67,7 +51,7 @@ function FaqItem({ item, open, onToggle }: { item: Faq; open: boolean; onToggle:
         style={{ gridTemplateRows: open ? "1fr" : "0fr", opacity: open ? 1 : 0 }}
       >
         <div className="overflow-hidden">
-          <p className="max-w-[62ch] whitespace-pre-line pb-6 pr-12 text-[15.5px] leading-[1.65] text-ink-soft">
+          <p className="max-w-[60ch] whitespace-pre-line pb-5 pr-12 text-[15px] leading-[1.6] text-ink-soft">
             {item.a.map((part, i) =>
               typeof part === "string" ? (
                 part

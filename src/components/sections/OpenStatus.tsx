@@ -19,7 +19,7 @@ function computeStatus() {
   const day = DAYS.indexOf(get("weekday"));
   const mins = Number(get("hour")) * 60 + Number(get("minute"));
   const today = hoursFor(day);
-  if (mins >= today.open && mins < today.close) return `open|Open now · until ${formatMinutes(today.close)}`;
+  if (mins >= today.open && mins < today.close) return `open|Open now · Closes ${formatMinutes(today.close)}`;
   if (mins < today.open) return `closed|Closed · opens ${formatMinutes(today.open)}`;
   const tomorrow = hoursFor((day + 1) % 7);
   return `closed|Closed · opens ${formatMinutes(tomorrow.open)} tomorrow`;
@@ -30,15 +30,22 @@ const subscribe = (onChange: () => void) => {
   return () => window.clearInterval(id);
 };
 
-export function OpenStatus() {
+/** `chip` sits on paper cards; `plain` sits inline on the page ground (hero). */
+export function OpenStatus({ variant = "chip", className }: { variant?: "chip" | "plain"; className?: string }) {
   const status = useSyncExternalStore(subscribe, computeStatus, () => "");
   if (!status) return null;
   const [state, text] = status.split("|");
   return (
-    <p className="inline-flex items-center gap-2 rounded-full bg-ivory px-3 py-1.5 text-[12px] font-medium text-ink-soft">
+    <p
+      className={cn(
+        "inline-flex items-center gap-2 font-medium",
+        variant === "chip" ? "rounded-full bg-ivory px-3 py-1.5 text-[12px] text-ink-soft" : "text-[13.5px] text-ink",
+        className,
+      )}
+    >
       <span
         aria-hidden
-        className={cn("size-1.5 rounded-full", state === "open" ? "bg-[#2f7d4f]" : "bg-ink/40")}
+        className={cn("size-1.5 shrink-0 rounded-full", state === "open" ? "bg-[#2f7d4f]" : "bg-ink/40")}
       />
       {text}
     </p>

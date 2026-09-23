@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Bodoni_Moda, Inter, Mrs_Saint_Delafield } from "next/font/google";
 import "./globals.css";
-import { BookingProvider } from "@/components/booking/BookingProvider";
 import { MotionPrefs } from "@/components/motion/MotionPrefs";
 import { SITE } from "@/lib/site";
 
@@ -30,6 +29,7 @@ const description =
   "Hair cuts, beard grooming, facials, hair spa, keratin and grooming packages at value-based pricing. Ayyappa Nagar, KR Puram, Bengaluru — 2 KM from Hoodi Circle. Call 8970000135.";
 
 export const metadata: Metadata = {
+  ...(SITE.url ? { metadataBase: new URL(SITE.url) } : {}),
   title: {
     default: "Express Cuts Men's Salon · KR Puram, Bengaluru",
     template: "%s · Express Cuts Men's Salon",
@@ -81,9 +81,9 @@ const jsonLd = {
 
 const DIRECTION_CONTRACT = `<!--
 THESIS: A local KR Puram salon presented as a men's grooming house: editorial fashion layout with real prices in plain sight. Refuses the discount-banner salon template.
-OWN-WORLD: Warm ivory and cream grounds, near-black ink, champagne italic accents, one red reserved for offer prices. Bodoni display, Inter UI, a single script signature. Black pill CTAs, 18px photo frames, hairline dividers.
-STORY: Who they are, then what they do, then nine combos at exact prices, then why trust them, then where they are. Book (WhatsApp form) or call at every turn.
-FIRST VIEWPORT: Barber photograph anchored right and blended into the cream field; Bodoni "A Better / You Everyday" on the left third; Book + Call pills beneath; nav with Home active.
+OWN-WORLD: Warm ivory and cream grounds, near-black ink, champagne italic accents, one red reserved for offer prices. Bodoni display, Inter UI, a single script signature. Brown Call and green WhatsApp pills, 18px photo frames, hairline dividers.
+STORY: Who they are, then what they do, then nine combos at exact prices, then why trust them, then where they are. WhatsApp or call at every turn.
+FIRST VIEWPORT: The salon interior filling the screen, its own cream field under the type; Bodoni "A Better / You Everyday" on the left third; WhatsApp + Call pills beneath; nav with Home active.
 FORM: Brief-pinned to REFRENCE IMAGE.png (pinned direction beats the roll). Seed key: pinned-reference.
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 -->`;
@@ -104,7 +104,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <MotionPrefs>
-          <BookingProvider>{children}</BookingProvider>
+          {children}
         </MotionPrefs>
       </body>
     </html>

@@ -2,81 +2,72 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Star } from "lucide-react";
+import { motion, useAnimationFrame, useInView, useMotionValue } from "motion/react";
+import { Pause, Play } from "lucide-react";
 import { GOOGLE_RATING, GOOGLE_REVIEWS_URL, REVIEWS, type Review } from "@/data/reviews";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/cn";
 import { Arrow, Eyebrow, btn } from "@/components/ui/button";
-import { StepButtons } from "@/components/ui/StepButtons";
+import { Stars } from "@/components/ui/Stars";
 import { Reveal } from "@/components/motion/Reveal";
 
+/** Marquee drift, px per second — slow enough to read */
+const SPEED = 22;
+/** Gap between cards (and between the two copies of the row), px */
+const GAP = 16;
 /** Verbatim Google reviews only — see src/data/reviews.ts. */
 export function ClientReviews() {
-  const scrollerRef = useRef<HTMLUListElement>(null);
-  const [progress, setProgress] = useState(0);
+  const reduce = useMediaQuery("(prefers-reduced-motion: reduce)");
   const hasReviews = REVIEWS.length > 0;
 
-  const onScroll = () => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const max = el.scrollWidth - el.clientWidth;
-    setProgress(max > 0 ? el.scrollLeft / max : 1);
-  };
-
-  const step = (dir: -1 | 1) => {
-    const el = scrollerRef.current;
-    const first = el?.firstElementChild as HTMLElement | null;
-    if (!el || !first) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    el.scrollBy({ left: dir * (first.offsetWidth + 20), behavior: reduce ? "auto" : "smooth" });
-  };
-
   return (
-    <section id="reviews" aria-labelledby="reviews-title" className="bg-ivory pb-20 lg:pb-28">
-      <div className="shell flex flex-wrap items-end justify-between gap-x-10 gap-y-8">
-        <div>
-          <Eyebrow>Real people. Real experiences.</Eyebrow>
-          <h2
-            id="reviews-title"
-            className="mt-5 font-display text-[clamp(2.3rem,4vw,3.3rem)] font-semibold leading-[1.04] tracking-[-0.015em]"
-          >
-            What Our Clients Say
-          </h2>
-          <RatingSummary className="mt-6" />
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          {hasReviews && (
-            <StepButtons
-              onStep={step}
-              atStart={progress <= 0.01}
-              atEnd={progress >= 0.99}
-              controls="reviews-track"
-              label="review"
-            />
-          )}
+    <section id="reviews" aria-labelledby="reviews-title" className="bg-ivory py-16 lg:py-20">
+      <div className="shell">
+        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
+          <div>
+            <Eyebrow>Real people. Real experiences.</Eyebrow>
+            <h2
+              id="reviews-title"
+              className="mt-5 font-display text-[clamp(2.1rem,3.5vw,2.9rem)] font-semibold leading-[1.04] tracking-[-0.015em]"
+            >
+              What Our Clients Say
+            </h2>
+            <RatingSummary className="mt-4" />
+          </div>
           <a href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer" className={btn("outline", "md")}>
             Read all reviews on Google <Arrow external />
           </a>
         </div>
-      </div>
 
-      {hasReviews && (
-        <Reveal>
-          <ul
-            ref={scrollerRef}
-            id="reviews-track"
-            aria-label="Google reviews"
-            onScroll={onScroll}
-            className="no-scrollbar px-shell mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto pb-4 pt-1"
-            style={{ scrollPaddingInline: "max(var(--gutter), calc((100% - 82rem) / 2 + var(--gutter)))" }}
-          >
-            {REVIEWS.map((r, i) => (
-              <li key={`${r.author}-${i}`} className="w-[min(86vw,380px)] shrink-0 snap-start">
-                <ReviewCard review={r} />
-              </li>
+        {/* The photograph shares the cards' row, so its top and bottom line up with
+            them; the pause control sits on its own row underneath. */}
+        <div className="mt-10 grid gap-5 lg:grid-cols-12">
+          {hasReviews &&
+            (reduce ? (
+              <div className="min-w-0 lg:col-span-9">
+                <StaticReviews />
+              </div>
+            ) : (
+              <Marquee
+                wrapperClassName="min-w-0 lg:contents"
+                viewportClassName="min-w-0 lg:col-span-9 lg:row-start-1"
+                controlsClassName="lg:col-span-9 lg:row-start-2 lg:mt-0"
+              />
             ))}
-          </ul>
-        </Reveal>
-      )}
+          <Reveal variant="clip" className="hidden lg:col-span-3 lg:row-start-1 lg:block">
+            <figure className="relative h-full overflow-hidden rounded-[18px] bg-charcoal">
+              <Image
+                src="/images/reviews/reception.webp"
+                alt="The lit Express Cuts Men's Salon reception desk in KR Puram"
+                fill
+                sizes="(min-width: 1280px) 300px, 24vw"
+                className="object-cover"
+                style={{ objectPosition: "50% 58%" }}
+              />
+            </figure>
+          </Reveal>
+        </div>
+      </div>
     </section>
   );
 }
@@ -84,114 +75,173 @@ export function ClientReviews() {
 function RatingSummary({ className }: { className?: string }) {
   const { value, count, asOf } = GOOGLE_RATING;
   return (
-    <div className={cn("flex items-center gap-4", className)}>
-      <span className="font-display text-[44px] font-semibold leading-none tracking-[-0.02em]">
-        {value.toFixed(1)}
-      </span>
-      <div>
-        <Stars value={value} />
-        <p className="mt-1.5 text-[14px] text-ink-muted">
-          <span className="tabular font-semibold text-ink">{count}</span> Google reviews · as of {asOf}
-        </p>
-      </div>
+    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-1.5", className)}>
+      <span className="font-display text-[30px] font-semibold leading-none tracking-[-0.02em]">{value.toFixed(1)}</span>
+      <Stars value={value} />
+      <p className="text-[14px] text-ink-muted">
+        <span className="tabular font-semibold text-ink">{count}</span> Google reviews · as of {asOf}
+      </p>
     </div>
   );
 }
 
-function Stars({ value, className }: { value: number; className?: string }) {
-  const row = (
-    <>
-      {Array.from({ length: 5 }, (_, i) => (
-        <Star key={i} aria-hidden className="size-4 shrink-0" fill="currentColor" strokeWidth={0} />
-      ))}
-    </>
-  );
+/**
+ * A slow, continuous left-to-right drift. The row is rendered twice (the copy is
+ * hidden from assistive tech) so it loops without a seam. Pauses on hover, while
+ * a card has focus, off-screen, in a background tab, or with the pause button.
+ */
+export function Marquee({
+  cardClassName = "w-[min(78vw,320px)]",
+  trackId = "reviews-track",
+  wrapperClassName,
+  viewportClassName,
+  controlsClassName,
+}: {
+  /** Card width */
+  cardClassName?: string;
+  trackId?: string;
+  /** Slots, so a host can place the row and its pause control itself */
+  wrapperClassName?: string;
+  viewportClassName?: string;
+  controlsClassName?: string;
+} = {}) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const setRef = useRef<HTMLUListElement>(null);
+  const loopW = useRef(0);
+  const focused = useRef(false);
+  const x = useMotionValue(0);
+  const [paused, setPaused] = useState(false);
+  const inView = useInView(wrapRef, { amount: 0.2 });
+  /* Only real pointers pause on hover — a tap on a phone must not freeze the row */
+  const canHover = useMediaQuery("(hover: hover)");
+
+  useEffect(() => {
+    const el = setRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      loopW.current = el.offsetWidth + GAP;
+      /* Start one row to the left so the drift moves into view */
+      if (x.get() === 0 || x.get() < -loopW.current) x.set(-loopW.current);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [x]);
+
+  useAnimationFrame((_, delta) => {
+    const w = loopW.current;
+    if (!w || paused || !inView || focused.current || document.hidden) return;
+    /* Read :hover each frame: cards drift under a still pointer, so enter/leave events are unreliable */
+    if (canHover && wrapRef.current?.matches(":hover")) return;
+    let next = x.get() + (SPEED * Math.min(delta, 64)) / 1000;
+    if (next >= 0) next -= w;
+    x.set(next);
+  });
+
+  const cards = (hidden?: boolean) =>
+    REVIEWS.map((r, i) => (
+      <li key={`${r.author}-${i}`} className={cn("shrink-0", cardClassName)}>
+        <ReviewCard review={r} decorative={hidden} />
+      </li>
+    ));
+
   return (
-    <span role="img" aria-label={`${value} out of 5 stars`} className={cn("relative inline-flex", className)}>
-      <span className="flex gap-0.5 text-line">{row}</span>
-      <span className="absolute inset-y-0 left-0 flex gap-0.5 overflow-hidden text-champagne" style={{ width: `${(value / 5) * 100}%` }}>
-        {row}
-      </span>
-    </span>
+    <div className={wrapperClassName}>
+      <div
+        ref={wrapRef}
+        className={cn("relative overflow-hidden py-1", viewportClassName)}
+        style={{
+          WebkitMaskImage: "linear-gradient(90deg, transparent 0, #000 4%, #000 96%, transparent 100%)",
+          maskImage: "linear-gradient(90deg, transparent 0, #000 4%, #000 96%, transparent 100%)",
+        }}
+        onFocusCapture={() => {
+          focused.current = true;
+        }}
+        onBlurCapture={() => {
+          focused.current = false;
+        }}
+      >
+        <motion.div style={{ x, gap: GAP }} className="flex w-max">
+          <ul ref={setRef} id={trackId} aria-label="Google reviews" className="flex" style={{ gap: GAP }}>
+            {cards()}
+          </ul>
+          <ul aria-hidden inert className="flex" style={{ gap: GAP }}>
+            {cards(true)}
+          </ul>
+        </motion.div>
+      </div>
+      <button
+        type="button"
+        onClick={() => setPaused((p) => !p)}
+        aria-pressed={paused}
+        aria-controls={trackId}
+        className={cn(
+          "mt-4 inline-flex items-center gap-2.5 text-[13px] font-medium text-ink-soft transition-colors hover:text-ink",
+          controlsClassName,
+        )}
+      >
+        <span className="grid size-8 place-items-center rounded-full border border-ink/20">
+          {paused ? (
+            <Play aria-hidden className="size-3.5" strokeWidth={1.8} />
+          ) : (
+            <Pause aria-hidden className="size-3.5" strokeWidth={1.8} />
+          )}
+        </span>
+        {paused ? "Play reviews" : "Pause reviews"}
+      </button>
+    </div>
   );
 }
 
-function ReviewCard({ review: r }: { review: Review }) {
-  const textRef = useRef<HTMLParagraphElement>(null);
-  const [expanded, setExpanded] = useState(false);
-  const [overflows, setOverflows] = useState(false);
-
-  /* "Read more" only when the clamped text actually hides something */
-  useEffect(() => {
-    const el = textRef.current;
-    if (!el || expanded) return;
-    const ro = new ResizeObserver(() => setOverflows(el.scrollHeight > el.clientHeight + 1));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [expanded]);
-
+/** Reduced motion: three cards, no movement. */
+export function StaticReviews() {
   return (
-    <figure className="flex h-full flex-col rounded-[18px] border border-line bg-paper p-6 shadow-[0_1px_2px_rgb(18_17_16/0.04)] sm:p-7">
-      <figcaption className="flex items-center gap-3.5">
-        <Avatar src={r.avatar} name={r.author} />
+    <ul aria-label="Google reviews" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {REVIEWS.slice(0, 3).map((r, i) => (
+        <li key={`${r.author}-${i}`}>
+          <ReviewCard review={r} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function ReviewCard({ review: r, decorative }: { review: Review; decorative?: boolean }) {
+  return (
+    <figure className="flex h-full flex-col rounded-[18px] border border-line bg-paper p-5 shadow-[0_1px_2px_rgb(18_17_16/0.04)]">
+      <figcaption className="flex items-center gap-3">
+        <Avatar src={r.avatar} name={r.author} eager={!decorative} />
         <span className="min-w-0">
-          <span className="block text-[15px] font-semibold leading-snug text-ink">{r.author}</span>
-          <span className="mt-0.5 block text-[12.5px] leading-snug text-ink-muted">{r.meta}</span>
+          <span className="block truncate text-[14.5px] font-semibold leading-snug text-ink">{r.author}</span>
+          <span className="mt-0.5 block text-[12.5px] leading-snug text-ink-muted">{r.date}</span>
         </span>
       </figcaption>
 
-      <Stars value={r.rating} className="mt-5" />
+      <Stars value={r.rating} className="mt-4" />
 
-      <div className="mt-3 flex-1">
-        <blockquote>
-          <p
-            ref={textRef}
-            className={cn("whitespace-pre-line text-[15.5px] leading-[1.6] text-ink-soft", !expanded && "line-clamp-6")}
-          >
-            {r.text}
-          </p>
-        </blockquote>
-        {(overflows || expanded) && (
-          <button
-            type="button"
-            aria-expanded={expanded}
-            onClick={() => setExpanded((v) => !v)}
-            className="mt-2 text-[13.5px] font-semibold text-ink underline decoration-ink/30 underline-offset-4 transition-colors hover:decoration-ink"
-          >
-            {expanded ? "Show less" : "Read more"}
-          </button>
-        )}
-      </div>
+      <blockquote className="mt-2.5 flex-1">
+        <p className="line-clamp-4 whitespace-pre-line text-[14.5px] leading-[1.55] text-ink-soft">{r.text}</p>
+      </blockquote>
 
-      <div className="mt-6 flex items-center justify-between gap-3 border-t border-line pt-4 text-[12.5px] text-ink-muted">
-        {r.sourceUrl ? (
-          <a href={r.sourceUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-ink underline-offset-4 hover:underline">
-            Google review
-          </a>
-        ) : (
-          <span className="font-semibold text-ink">Google review</span>
-        )}
-        <span>{r.date}</span>
-      </div>
+      <p className="mt-4 border-t border-line pt-3 text-[12.5px] font-semibold text-ink">Google review</p>
     </figure>
   );
 }
 
 /** Supplied Google photo, or initials — never a stand-in face. */
-function Avatar({ src, name }: { src?: string; name: string }) {
+function Avatar({ src, name, eager }: { src?: string; name: string; eager?: boolean }) {
   const [failed, setFailed] = useState(false);
   if (src && !failed) {
     return (
       <Image
         src={src}
         alt=""
-        width={44}
-        height={44}
+        width={40}
+        height={40}
         unoptimized
-        loading="eager"
+        loading={eager ? "eager" : "lazy"}
         referrerPolicy="no-referrer"
         onError={() => setFailed(true)}
-        className="size-11 shrink-0 rounded-full bg-cream object-cover"
+        className="size-10 shrink-0 rounded-full bg-cream object-cover"
       />
     );
   }
@@ -203,7 +253,7 @@ function Avatar({ src, name }: { src?: string; name: string }) {
     .join("")
     .toUpperCase();
   return (
-    <span aria-hidden className="grid size-11 shrink-0 place-items-center rounded-full bg-cream text-[14px] font-semibold text-ink">
+    <span aria-hidden className="grid size-10 shrink-0 place-items-center rounded-full bg-cream text-[13.5px] font-semibold text-ink">
       {initials}
     </span>
   );

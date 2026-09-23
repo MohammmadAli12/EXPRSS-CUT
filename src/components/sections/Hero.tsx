@@ -1,38 +1,45 @@
-import Image from "next/image";
 import { ArrowDown, Phone } from "lucide-react";
-import { TEL } from "@/lib/site";
-import { Arrow, btn } from "@/components/ui/button";
-import { BookTrigger } from "@/components/booking/BookTrigger";
+import { TEL, waLink } from "@/lib/site";
+import { HAIRCUT_FROM } from "@/data/popular";
+import { GOOGLE_RATING, GOOGLE_REVIEWS_URL } from "@/data/reviews";
+import { btn } from "@/components/ui/button";
+import { MediaImage } from "@/components/ui/MediaImage";
+import { Stars } from "@/components/ui/Stars";
+import { OpenStatus } from "./OpenStatus";
+import { HeroMobile } from "./HeroMobile";
+import { WaBtn2 } from "@/components/offer-card/actions";
 
 const d = (ms: number) => ({ "--d": ms }) as React.CSSProperties;
 
 /**
- * The supplied photograph is composed for this: a 3:2 frame whose left third is
- * an empty cream field. On desktop it sits below the navigation, anchored right
- * and blended into the page ground; on mobile it leads, cropped to barber +
- * client, and dissolves into the ivory where the copy begins.
+ * The supplied photograph is composed for this: a wide frame whose left third is
+ * an empty cream field, with the salon under a curved cut-out and the STYLE rail
+ * at its right edge. On desktop it fills the whole first screen, anchored right so
+ * the rail stays in frame, with a cream scrim over the type. On mobile a crop of
+ * the same photograph leads under the copy.
  */
 export function Hero() {
   return (
     <section id="hero" aria-labelledby="hero-title" className="hero relative isolate overflow-hidden bg-hero">
-      <div className="hero-art relative h-[min(70svh,620px)] w-full overflow-hidden pt-[var(--nav-h)] lg:h-auto lg:pt-0">
-        <div className="relative h-full w-full overflow-hidden">
-          <div className="hero-settle absolute inset-0">
-            <Image
-              src="/images/hero/hero.png"
-              alt="Barber styling a client's textured haircut in the salon chair"
-              fill
-              preload
-              quality={85}
-              sizes="(min-width: 1024px) 100vw, 100vw"
-              className="object-cover object-[63%_0%] lg:object-[50%_0%]"
-            />
-          </div>
+      {/* ≥1024px: the approved desktop composition (display: contents keeps its layout identical) */}
+      <div className="hidden lg:contents">
+      {/* The photograph is the whole screen; the copy sits on its cream field */}
+      <div className="hero-art absolute inset-0 overflow-hidden">
+        <div className="hero-settle absolute inset-0">
+          <MediaImage
+            /* Below 1024px the browser picks a blank source: phones never fetch this photo */
+            skip="(max-width: 1023.98px)"
+            src="/images/hero/home-hero.webp"
+            alt="Inside Express Cuts Men's Salon in KR Puram — styling chairs, product shelves and the reception desk"
+            fill
+            loading="eager"
+            fetchPriority="high"
+            quality={85}
+            sizes="100vw"
+            className="object-cover object-right"
+          />
         </div>
-        <div
-          aria-hidden
-          className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-b from-hero/0 to-hero lg:hidden"
-        />
+        <div aria-hidden className="hero-scrim absolute inset-0" />
       </div>
 
       <div className="shell relative lg:flex lg:h-full lg:items-center lg:pb-[3vh] lg:pt-[var(--nav-h)]">
@@ -62,32 +69,39 @@ export function Hero() {
           </p>
 
           <div className="hero-rise mt-8 flex flex-wrap items-center gap-3" style={d(640)}>
-            <BookTrigger className={btn("ink", "lg")}>
-              Book Your Appointment <Arrow />
-            </BookTrigger>
+            <WaBtn2 size="lg" href={waLink("Hi, I'd like to book a slot at Express Cuts.")} />
             <a href={TEL} className={btn("outline", "lg", "bg-hero/60")}>
               <Phone aria-hidden className="size-4" strokeWidth={1.6} />
               Call Now
             </a>
           </div>
 
-          <a
-            href="#services"
-            className="hero-rise group/btn mt-5 inline-flex items-center gap-2 text-[14px] font-medium text-ink underline-offset-[6px] hover:underline"
-            style={d(720)}
-          >
-            Explore Services <Arrow className="size-3.5" />
-          </a>
-
-          <div className="hero-rise mt-9 flex items-center gap-4" style={d(820)}>
-            <span className="font-display text-[38px] font-semibold leading-none tracking-[-0.02em]">
-              2020
+          <p className="hero-rise mt-5 text-[15px] font-medium text-ink" style={d(720)}>
+            Haircuts from{" "}
+            <span className="tabular text-[17px] font-extrabold tracking-[-0.02em] text-price">₹{HAIRCUT_FROM}</span>
+            <span aria-hidden className="mx-2 text-ink-muted">
+              ·
             </span>
-            <span className="h-9 w-px bg-ink/20" aria-hidden />
-            <p className="text-[13.5px] leading-[1.5] text-ink-muted">
-              <span className="block font-medium text-ink">Quality grooming. Value-based pricing.</span>
-              Serving KR Puram since 2020
-            </p>
+            Walk-ins welcome
+          </p>
+
+          <div className="hero-rise mt-6 flex flex-wrap items-center gap-x-5 gap-y-3" style={d(820)}>
+            <a
+              href={GOOGLE_REVIEWS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2.5 text-[13.5px] text-ink-soft underline-offset-4 hover:underline"
+            >
+              <span className="font-display text-[26px] font-semibold leading-none tracking-[-0.02em] text-ink">
+                {GOOGLE_RATING.value.toFixed(1)}
+              </span>
+              <Stars value={GOOGLE_RATING.value} />
+              <span>
+                <span className="tabular font-semibold text-ink">{GOOGLE_RATING.count}</span> Google reviews
+              </span>
+            </a>
+            <span aria-hidden className="hidden h-6 w-px bg-ink/20 sm:block" />
+            <OpenStatus variant="plain" />
           </div>
 
           <a
@@ -102,6 +116,10 @@ export function Hero() {
           </a>
         </div>
       </div>
+      </div>
+
+      {/* <1024px: its own composition, from the mobile reference */}
+      <HeroMobile />
     </section>
   );
 }
