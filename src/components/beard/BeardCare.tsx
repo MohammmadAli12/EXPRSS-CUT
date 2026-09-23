@@ -48,7 +48,7 @@ export function BeardCare() {
           </ol>
 
           <div className="mt-9">
-            <Link href={BEARD_GUIDE_HREF} className={btn("outline", "md")}>
+            <Link href={BEARD_GUIDE_HREF} prefetch={false} className={btn("outline", "md")}>
               Read the Beard Guide <Arrow />
             </Link>
           </div>

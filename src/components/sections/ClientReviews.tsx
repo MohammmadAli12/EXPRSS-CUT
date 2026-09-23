@@ -18,6 +18,8 @@ const GAP = 16;
 /** Verbatim Google reviews only — see src/data/reviews.ts. */
 export function ClientReviews() {
   const reduce = useMediaQuery("(prefers-reduced-motion: reduce)");
+  /* The photograph beside the reviews is a desktop element */
+  const wide = useMediaQuery("(min-width: 1024px)");
   const hasReviews = REVIEWS.length > 0;
 
   return (
@@ -54,18 +56,22 @@ export function ClientReviews() {
                 controlsClassName="lg:col-span-9 lg:row-start-2 lg:mt-0"
               />
             ))}
-          <Reveal variant="clip" className="hidden lg:col-span-3 lg:row-start-1 lg:block">
-            <figure className="relative h-full overflow-hidden rounded-[18px] bg-charcoal">
-              <Image
-                src="/images/reviews/reception.webp"
-                alt="The lit Express Cuts Men's Salon reception desk in KR Puram"
-                fill
-                sizes="(min-width: 1280px) 300px, 24vw"
-                className="object-cover"
-                style={{ objectPosition: "50% 58%" }}
-              />
-            </figure>
-          </Reveal>
+          {/* Desktop only, and only mounted there: hidden `fill` images fall back to
+              the largest source, which is a needless download on a phone. */}
+          {wide && (
+            <Reveal variant="clip" className="hidden lg:col-span-3 lg:row-start-1 lg:block">
+              <figure className="relative h-full overflow-hidden rounded-[18px] bg-charcoal">
+                <Image
+                  src="/images/reviews/reception.webp"
+                  alt="The lit Express Cuts Men's Salon reception desk in KR Puram"
+                  fill
+                  sizes="(min-width: 1280px) 300px, 24vw"
+                  className="object-cover"
+                  style={{ objectPosition: "50% 58%" }}
+                />
+              </figure>
+            </Reveal>
+          )}
         </div>
       </div>
     </section>

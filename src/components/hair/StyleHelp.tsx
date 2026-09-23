@@ -79,7 +79,7 @@ export function StyleHelp() {
             </ul>
 
             <div className="mt-7">
-              <Link href={HAIR_GUIDE_HREF} className={btn("outline", "md")}>
+              <Link href={HAIR_GUIDE_HREF} prefetch={false} className={btn("outline", "md")}>
                 Read the Hair Guide <Arrow />
               </Link>
             </div>

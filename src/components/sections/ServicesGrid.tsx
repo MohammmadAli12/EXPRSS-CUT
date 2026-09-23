@@ -39,10 +39,15 @@ export function ServicesGrid() {
   );
 }
 
+/** Pages that exist; the rest still land on the "coming soon" page */
+const BUILT = new Set(["/hair", "/beard", "/facial", "/hair-spa", "/hair-color", "/offers", "/gallery", "/our-story"]);
+
 function ServiceCard({ service: s }: { service: Service }) {
   return (
     <Link
       href={s.href}
+      /* Don't prefetch a page that isn't built yet — it only 404s in the console */
+      prefetch={BUILT.has(s.href) ? undefined : false}
       className="group relative block aspect-[4/5] overflow-hidden rounded-[18px] bg-paper"
     >
       <div className="absolute inset-0 transition-transform duration-[1400ms] ease-editorial group-hover:scale-[1.05]">
